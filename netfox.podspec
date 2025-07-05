@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "netfox"
-  s.version          = "1.21.0"
+  s.version          = "2.0"
   s.summary          = "A lightweight, one line setup, iOS/OSX network debugging library!"
 
   s.description      = <<-DESC
@@ -18,5 +18,4 @@ DESC
   s.requires_arc = true
   s.source_files = "netfox/Core/*.{swift}"
   s.ios.source_files = "netfox/iOS/*.swift"
-  s.osx.source_files = "netfox/OSX/*.{swift,xib}"
 end
