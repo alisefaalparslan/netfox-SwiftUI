@@ -1,8 +1,7 @@
 //
-//  NFXDetailsController.swift
-//  netfox
+//  DetailsView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import Foundation
@@ -32,7 +31,7 @@ fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct NFXDetailsView: View {
+struct DetailsView: View {
     @State private var selectedTab: DetailsTab = .info
     @State private var shareContent: String? = nil
     @State private var showShareSheet = false
@@ -120,17 +119,17 @@ struct NFXDetailsView: View {
         .navigationDestination(isPresented: $showResponseBodyDetails) {
             switch selectedModel.shortType {
             case .IMAGE:
-                NFXImageBodyDetailsView(bodyType: .response, selectedModel: selectedModel)
+                ImageBodyDetailsView(bodyType: .response, selectedModel: selectedModel)
             default:
-                NFXRawBodyDetailsView(bodyType: .response, selectedModel: selectedModel)
+                RawBodyDetailsView(bodyType: .response, selectedModel: selectedModel)
             }
         }
         .navigationDestination(isPresented: $showRequestBodyDetails) {
             switch selectedModel.shortType {
             case .IMAGE:
-                NFXImageBodyDetailsView(bodyType: .request, selectedModel: selectedModel)
+                ImageBodyDetailsView(bodyType: .request, selectedModel: selectedModel)
             default:
-                NFXRawBodyDetailsView(bodyType: .request, selectedModel: selectedModel)
+                RawBodyDetailsView(bodyType: .request, selectedModel: selectedModel)
             }
         }
     }
@@ -138,7 +137,7 @@ struct NFXDetailsView: View {
 
 // MARK: - Helpers
 
-extension NFXDetailsView {
+extension DetailsView {
     func getAttributedString(for tab: DetailsTab) -> AttributedString {
         let string: String
         switch tab {
@@ -268,7 +267,7 @@ struct ShareSheet: UIViewControllerRepresentable {
 
 
 #Preview {
-    NFXDetailsView(
+    DetailsView(
         selectedModel: NFXHTTPModel.mock
     )
 }

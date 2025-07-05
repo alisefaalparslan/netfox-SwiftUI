@@ -1,8 +1,7 @@
 //
-//  NFXImageBodyDetailsController.swift
-//  netfox
+//  ImageBodyDetailsView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import Foundation
@@ -15,7 +14,7 @@ enum NFXBodyType: Int {
 
 import SwiftUI
 
-struct NFXImageBodyDetailsView: View {
+struct ImageBodyDetailsView: View {
     let bodyType: NFXBodyType
     let selectedModel: NFXHTTPModel
 

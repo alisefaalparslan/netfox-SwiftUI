@@ -1,13 +1,12 @@
 //
-//  NFXInfoController_iOS.swift
-//  netfox
+//  InfoView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import SwiftUI
 
-struct NFXInfoView: View {
+struct InfoView: View {
     @State private var infoText: AttributedString = AttributedString("Loading...")
 
     var body: some View {
@@ -73,5 +72,5 @@ struct NFXInfoView: View {
 }
 
 #Preview {
-    NFXInfoView()
+    InfoView()
 }

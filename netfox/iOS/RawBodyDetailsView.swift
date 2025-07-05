@@ -1,13 +1,12 @@
 //
-//  NFXRawBodyDetailsController.swift
-//  netfox
+//  RawBodyDetailsView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import SwiftUI
 
-struct NFXRawBodyDetailsView: View {
+struct RawBodyDetailsView: View {
     let bodyType: NFXBodyType
     let selectedModel: NFXHTTPModel
     @State private var showCopyAlert = false

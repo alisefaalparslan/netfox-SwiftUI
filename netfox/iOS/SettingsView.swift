@@ -1,8 +1,7 @@
 //
-//  NFXSettingsController_iOS.swift
-//  netfox
+//  SettingsView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import UIKit
@@ -31,7 +30,7 @@ import MessageUI
 import SwiftUI
 import MessageUI
 
-struct NFXSettingsView: View {
+struct SettingsView: View {
     @State private var filters = NFXHTTPModelManager.shared.filters
     @State private var isLoggingEnabled = NFX.sharedInstance().isEnabled()
     @State private var showClearConfirmation = false
@@ -124,10 +123,10 @@ struct NFXSettingsView: View {
                 }
             }
             .sheet(isPresented: $showInfo) {
-                NFXInfoView()
+                InfoView()
             }
             .sheet(isPresented: $showStatistics) {
-                NFXStatisticsView()
+                StatisticsView()
             }
         }
     }

@@ -20,12 +20,14 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 
 @objc public class NFXHTTPModel: NSObject {
     @objc public var requestURL: String?
+    @objc public var requestHost: String?
     @objc public var requestURLComponents: URLComponents?
     @objc public var requestURLQueryItems: [URLQueryItem]?
     @objc public var requestMethod: String?
     @objc public var requestCachePolicy: String?
     @objc public var requestDate: Date?
     @objc public var requestTime: String?
+    @objc public var requestTimeSecond: String?
     @objc public var requestTimeout: String?
     @objc public var requestHeaders: [AnyHashable: Any]?
     public var requestBodyLength: Int?
@@ -36,6 +38,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     @objc public var responseType: String?
     @objc public var responseDate: Date?
     @objc public var responseTime: String?
+    @objc public var responseTimeSecond: String?
     @objc public var responseHeaders: [AnyHashable: Any]?
     public var responseBodyLength: Int?
     
@@ -49,7 +52,9 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     
     func saveRequest(_ request: URLRequest) {
         requestDate = Date()
+        requestHost = request.url?.host()
         requestTime = getTimeFromDate(requestDate!)
+        requestTimeSecond = getTimeSecondFromDate(requestDate!)
         requestURL = request.getNFXURL()
         requestURLComponents = request.getNFXURLComponents()
         requestURLQueryItems = request.getNFXURLComponents()?.queryItems
@@ -77,6 +82,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         noResponse = false
         responseDate = Date()
         responseTime = getTimeFromDate(responseDate!)
+        responseTimeSecond = getTimeSecondFromDate(responseDate!)
         responseStatus = response.getNFXStatus()
         responseHeaders = response.getNFXHeaders()
         
@@ -191,7 +197,31 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
             return "\(hour):\(minutes)"
         }
     }
-    
+
+    @objc public func getTimeSecondFromDate(_ date: Date) -> String? {
+        let calendar = Calendar.current
+        let components = (calendar as NSCalendar).components([.hour, .minute, .second], from: date)
+        guard let hour = components.hour, let minutes = components.minute, let second = components.second else {
+            return nil
+        }
+
+        var secondString: String = ""
+        if second < 10 {
+            secondString = "0\(second)"
+        } else {
+            secondString = "\(second)"
+        }
+
+        var minutesString: String = ""
+        if minutes < 10 {
+            minutesString = "0\(minutes)"
+        } else {
+            minutesString = "\(minutes)"
+        }
+
+        return "\(hour):\(minutesString):\(secondString)"
+    }
+
     public func prettyPrint(_ rawData: Data, type: HTTPModelShortType) -> String? {
         switch type {
         case .JSON:

@@ -27,7 +27,13 @@ final class NFXHTTPModelManager: NSObject {
             notifySubscribers()
         }
     }
-    
+
+    var ignoredDomains: [String] = []
+    var selectedStatus: FiltersStatusType = .all
+    var selectedSortByDurationTime: FiltersSortByTimeType = .clear
+    var selectedSortByStartTime: FiltersSortByTimeType = .clear
+    var selectedSortByFinishTime: FiltersSortByTimeType = .clear
+
     /// Not thread safe. Use only from main thread/queue
     var filteredModels: [NFXHTTPModel] {
         let filteredTypes = getCachedFilterTypes()

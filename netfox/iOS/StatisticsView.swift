@@ -1,13 +1,12 @@
 //
-//  NFXStatisticsController_iOS.swift
-//  netfox
+//  StatisticsView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import SwiftUI
 
-struct NFXStatisticsView: View {
+struct StatisticsView: View {
     @State private var report: AttributedString = ""
     @State private var totalModels = 0
     @State private var successfulRequests = 0
@@ -138,5 +137,5 @@ struct NFXStatisticsView: View {
 }
 
 #Preview {
-    NFXStatisticsView()
+    StatisticsView()
 }

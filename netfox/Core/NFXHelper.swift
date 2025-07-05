@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 
 public enum HTTPModelShortType: String, CaseIterable {
     case JSON = "JSON"
@@ -34,7 +35,79 @@ public extension HTTPModelShortType {
     }
 }
 
-import SwiftUI
+
+enum FiltersStatusType: CaseIterable, Identifiable {
+
+    case success
+    case cache
+    case error
+    case all
+
+    var color: Color {
+        switch self {
+        case .success:
+            return .NFXGreenColor
+        case .cache:
+            return .NFXOrangeColor
+        case .error:
+            return .NFXRedColor
+        case .all:
+            return .yellow
+        }
+    }
+
+    var text: String {
+        switch self {
+        case .success:
+            return "2XX"
+        case .cache:
+            return "3XX"
+        case .error:
+            return "4XX"
+        case .all:
+            return "All"
+        }
+    }
+
+    var id: Int {
+        text.hashValue
+    }
+}
+
+
+enum FiltersSortByTimeType: CaseIterable, Identifiable {
+
+    case desc
+    case asc
+    case clear
+
+    var color: Color {
+        switch self {
+        case .desc:
+            return .NFXGreenColor
+        case .asc:
+            return .NFXRedColor
+        case .clear:
+            return .yellow
+        }
+    }
+
+    var text: String {
+        switch self {
+        case .desc:
+            return "Desc"
+        case .asc:
+            return "Asc"
+        case .clear:
+            return "Clear"
+        }
+    }
+
+    var id: Int {
+        text.hashValue
+    }
+}
+
 
 extension Color {
     init(red: Int, green: Int, blue: Int) {

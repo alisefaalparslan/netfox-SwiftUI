@@ -1,21 +1,20 @@
 //
-//  NFXListCell.swift
-//  netfox
+//  ListItemView.swift
 //
-//  Copyright © 2016 netfox. All rights reserved.
+//  Created by alisefaalparslan on 5.07.2025.
 //
 
 import Foundation
 import SwiftUI
 
-struct NFXListCellView: View {
+struct ListItemView: View {
     let url: String
     let status: Int
     let timeInterval: Float
-    let requestTime: String
     let type: String
     let method: String
-    let isNew: Bool
+    let requestTime: String
+    let responseTime: String
 
     private var statusColor: Color {
         if status == 999 {
@@ -42,6 +41,9 @@ struct NFXListCellView: View {
                     .foregroundColor(.white)
                 Text(timeIntervalText)
                     .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.white)
+                Text(responseTime)
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundColor(.white)
                 Spacer()
             }
@@ -75,19 +77,3 @@ extension UIFont {
     var toFont: Font { Font(self) }
 }
 
-#Preview {
-    VStack {
-        Spacer()
-        NFXListCellView(
-             url: "https://api.example.com/data/123https://api.example.com/data/123https://api.example.com/data/123https://api.example.com/data/123https://api.example.com/data/123",
-             status: 200,
-             timeInterval: 0.150, // Time in seconds, e.g., 150ms
-             requestTime: "10:30",
-             type: "JSON",
-             method: "GET",
-             isNew: true
-         )
-        .frame(width: 300, height: 100)
-        Spacer()
-    }
-}
