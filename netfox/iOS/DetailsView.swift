@@ -66,13 +66,16 @@ struct DetailsView: View {
                 VStack(alignment: .leading) {
                     Text(getAttributedString(for: selectedTab))
                         .font(.system(size: 13))
-                        .textSelection(.enabled)
                         .padding()
-                        .contextMenu {
-                            Button("Copy") {
-                                UIPasteboard.general.string = getAttributedString(for: selectedTab).description
-                            }
+                        .onLongPressGesture {
+                            UIPasteboard.general.string = getClipboardString(for: selectedTab)
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }
+//                        .contextMenu {
+//                            Button("Copy") {
+//                                UIPasteboard.general.string = getClipboardString(for: selectedTab).description
+//                            }
+//                        }
 
                     if selectedTab == .request {
                         if selectedModel.requestBodyLength > 1024 {
@@ -149,6 +152,19 @@ extension DetailsView {
             string = getResponseStringFromObject(selectedModel)
         }
         return formatNFXString(string)
+    }
+
+    func getClipboardString(for tab: DetailsTab) -> String {
+        let string: String
+        switch tab {
+        case .info:
+            string = getInfoStringFromObject(selectedModel)
+        case .request:
+            string = getRequestStringFromObject(selectedModel)
+        case .response:
+            string = getResponseStringFromObject(selectedModel)
+        }
+        return string
     }
 
     func getInfoStringFromObject(_ object: NFXHTTPModel) -> String {

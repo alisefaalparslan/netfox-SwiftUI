@@ -24,7 +24,6 @@ struct RawBodyDetailsView: View {
         ScrollView {
             Text(bodyText)
                 .font(.system(size: 13, design: .monospaced))
-                .foregroundColor(Color.NFXGray44Color)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
                 .contextMenu {
@@ -39,7 +38,6 @@ struct RawBodyDetailsView: View {
                     }
                 }
         }
-        .background(Color.NFXGray95Color.ignoresSafeArea())
         .navigationTitle("Body details")
         .overlay(
             Group {

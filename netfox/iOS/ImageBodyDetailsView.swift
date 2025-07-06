@@ -44,11 +44,9 @@ struct ImageBodyDetailsView: View {
                     .padding(10)
             } else {
                 Text("Unable to decode image")
-                    .foregroundColor(.secondary)
                     .padding()
             }
         }
-        .background(Color.NFXGray95Color.ignoresSafeArea())
         .navigationTitle("Image preview")
     }
 }

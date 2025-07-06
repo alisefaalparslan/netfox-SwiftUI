@@ -8,15 +8,11 @@ import Foundation
 import SwiftUI
 
 struct ListItemView: View {
-    let url: String
-    let status: Int
-    let timeInterval: Float
-    let type: String
-    let method: String
-    let requestTime: String
-    let responseTime: String
+
+    var model: NFXHTTPModel
 
     private var statusColor: Color {
+        let status = model.responseStatus ?? 999
         if status == 999 {
             return Color.NFXGray44Color
         } else if status < 400, status >= 300 {
@@ -29,20 +25,20 @@ struct ListItemView: View {
     }
 
     private var timeIntervalText: String {
-        timeInterval == 999 ? "-" : String(format: "%.2f", timeInterval)
+        String(format: "%.2f", model.timeInterval ?? 999)
     }
 
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 5) {
                 Spacer()
-                Text(requestTime)
+                Text(model.requestTimeSecond ?? "-")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(.white)
                 Text(timeIntervalText)
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.white)
-                Text(responseTime)
+                Text(model.responseTimeSecond ?? "-")
                     .font(.system(size: 13, weight: .regular))
                     .foregroundColor(.white)
                 Spacer()
@@ -52,16 +48,33 @@ struct ListItemView: View {
             .cornerRadius(5)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(url)
+                Text(model.requestURL ?? "")
                     .font(.system(size: 13, weight: .regular))
-                    .lineLimit(3)
+                    .lineLimit(4)
                 HStack(spacing: 8) {
-                    Text(method)
+                    Text(model.requestMethod ?? "-")
                         .font(.system(size: 12, weight: .bold))
-                        .opacity(0.8)
-                    Text(type)
+                        .opacity(0.9)
+                    Text(model.responseType ?? "-")
+                        .lineLimit(1)
                         .font(.system(size: 10, weight: .regular))
                         .opacity(0.8)
+                    Spacer()
+                }
+
+                HStack {
+                    if let reqBod = model.requestBodyLength, reqBod > 0 {
+                        Text("Request Body")
+                            .font(.system(size: 9, weight: .regular))
+                            .opacity(0.7)
+                    }
+
+                    if let resBod = model.responseBodyLength, resBod > 0 {
+                        Text("Response Body")
+                            .font(.system(size: 9, weight: .regular))
+                            .opacity(0.7)
+                    }
+
                     Spacer()
                 }
             }

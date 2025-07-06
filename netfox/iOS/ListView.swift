@@ -28,15 +28,7 @@ struct ListView: View {
         NavigationStack {
             List(filteredData, id: \.randomHash) { model in
                 NavigationLink(destination: DetailsView(selectedModel: model)) {
-                    ListItemView(
-                        url: model.requestURL ?? "",
-                        status: model.responseStatus ?? 999,
-                        timeInterval: model.timeInterval ?? 999,
-                        type: model.responseType ?? "-",
-                        method: model.requestMethod ?? "-",
-                        requestTime: model.requestTimeSecond ?? "-",
-                        responseTime: model.responseTimeSecond ?? "-"
-                    )
+                    ListItemView(model: model)
                     .padding(.vertical, 5)
                 }
             }
