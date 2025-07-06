@@ -89,6 +89,15 @@ struct FilterView: View {
             }
 
             Section(header: Text("Tracked Domains").font(.headline)) {
+
+                Button("Select All") {
+                    ignoredDomains = []
+                }
+
+                Button("Deselect All") {
+                    ignoredDomains = allDomains
+                }
+
                 ForEach(allDomains, id: \.self) { domain in
                     HStack {
                         Text(domain)
@@ -100,7 +109,11 @@ struct FilterView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        ignoredDomains.append(domain)
+                        if !ignoredDomains.contains(domain) {
+                            ignoredDomains.append(domain)
+                        } else {
+                            ignoredDomains.removeAll { $0 == domain }
+                        }
                     }
                 }
             }

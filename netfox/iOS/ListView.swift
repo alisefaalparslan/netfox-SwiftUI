@@ -75,7 +75,7 @@ struct ListView: View {
                     selectedSortByFinishTime: $selectedSortByFinishTime,
                     selectedSortByStartTime: $selectedSortByStartTime,
                     ignoredDomains: ignoredDomains,
-                    allDomains: Array(Set(allModels.compactMap { $0.requestHost }))
+                    allDomains: Array(Set(allModels.compactMap { $0.requestHost })).sorted()
                 ) { ignoredDomains in
                     if ignoredDomains != self.ignoredDomains {
                         self.ignoredDomains = ignoredDomains
@@ -87,14 +87,14 @@ struct ListView: View {
                     allModels = models
                 }
                 populate(with: NFXHTTPModelManager.shared.filteredModels)
-                self.ignoredDomains = NFXHTTPModelManager.shared.ignoredDomains.sorted()
+                self.ignoredDomains = NFXHTTPModelManager.shared.ignoredDomains
                 self.selectedStatus = NFXHTTPModelManager.shared.selectedStatus
                 self.selectedSortByDurationTime = NFXHTTPModelManager.shared.selectedSortByDurationTime
                 self.selectedSortByStartTime = NFXHTTPModelManager.shared.selectedSortByStartTime
                 self.selectedSortByFinishTime = NFXHTTPModelManager.shared.selectedSortByFinishTime
             }
             .onDisappear {
-                NFXHTTPModelManager.shared.ignoredDomains = self.ignoredDomains.sorted()
+                NFXHTTPModelManager.shared.ignoredDomains = self.ignoredDomains
                 NFXHTTPModelManager.shared.selectedStatus = self.selectedStatus
                 NFXHTTPModelManager.shared.selectedSortByDurationTime = self.selectedSortByDurationTime
                 NFXHTTPModelManager.shared.selectedSortByStartTime = self.selectedSortByStartTime
