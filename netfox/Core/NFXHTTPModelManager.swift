@@ -34,6 +34,8 @@ final class NFXHTTPModelManager: NSObject {
     var selectedSortByStartTime: FiltersSortByTimeType = .clear
     var selectedSortByFinishTime: FiltersSortByTimeType = .clear
 
+    var sharedMonitorConfig = NetfoxSettingsStore()
+
     /// Not thread safe. Use only from main thread/queue
     var filteredModels: [NFXHTTPModel] {
         let filteredTypes = getCachedFilterTypes()

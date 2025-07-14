@@ -14,6 +14,7 @@ struct ListView: View {
     @State private var showClearConfirmation = false
     @State private var showSettings = false
     @State private var showToolBar = false
+    @State private var showSourceBar = false
     @Environment(\.presentationMode) private var presentationMode
 
     private let dataSubscription = NFXHTTPModelManager.shared.publisher
@@ -33,13 +34,17 @@ struct ListView: View {
                 }
             }
             .listStyle(.grouped)
-            .navigationTitle("Requests")
+            .navigationTitle("")
             .toolbar {
 
                 ToolbarItemGroup(placement: .navigationBarLeading) {
 
                     Button(action: { showToolBar = true }) {
                         Image(systemName: "line.3.horizontal.decrease")
+                    }
+
+                    Button(action: { showSourceBar = true }) {
+                        Image(systemName: "cpu")
                     }
 
                     Text("T: \(filteredData.count)")
@@ -53,6 +58,7 @@ struct ListView: View {
                     Button(action: { showClearConfirmation = true }) {
                         Image(systemName: "trash")
                     }
+
                     Button(action: { showSettings = true }) {
                         Image(systemName: "gear")
                     }
@@ -81,6 +87,9 @@ struct ListView: View {
                         self.ignoredDomains = ignoredDomains
                     }
                 }
+            }
+            .sheet(isPresented: $showSourceBar) {
+                PerformanceMonitoringSettingsView()
             }
             .onAppear {
                 NFXHTTPModelManager.shared.publisher.subscribe { models in
