@@ -34,10 +34,9 @@ struct SettingsView: View {
     @State private var filters = NFXHTTPModelManager.shared.filters
     @State private var isLoggingEnabled = NFX.sharedInstance().isEnabled()
     @State private var showClearConfirmation = false
-    @State private var showMailView = false
-    @State private var mailData: Data?
     @State private var showInfo = false
     @State private var showStatistics = false
+    @State private var isSessionLogGenerating = false
     @Environment(\.presentationMode) private var presentationMode
 
     private let tableData = HTTPModelShortType.allCases
@@ -75,11 +74,18 @@ struct SettingsView: View {
 
                 Section {
                     Button(action: shareSessionLogs) {
-                        Text("Share Session Logs")
-                            .frame(maxWidth: .infinity)
-                            .foregroundColor(Color.NFXGreenColor)
-                            .font(.system(size: 16))
+
+                        if isSessionLogGenerating {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Text("Share Session Logs")
+                                .frame(maxWidth: .infinity)
+                                .foregroundColor(Color.NFXGreenColor)
+                                .font(.system(size: 16))
+                        }
                     }
+                    .disabled(isSessionLogGenerating)
                 }
 
                 Section {
@@ -117,11 +123,6 @@ struct SettingsView: View {
             .onDisappear {
                 NFXHTTPModelManager.shared.filters = filters
             }
-            .sheet(isPresented: $showMailView) {
-                if let mailData = mailData {
-                    MailView(data: mailData)
-                }
-            }
             .sheet(isPresented: $showInfo) {
                 InfoView()
             }
@@ -132,39 +133,76 @@ struct SettingsView: View {
     }
 
     private func shareSessionLogs() {
-        if let sessionLogData = try? Data(contentsOf: NFXPath.sessionLogURL) {
-            mailData = sessionLogData
-            showMailView = true
+        DispatchQueue.global(qos: .utility).async {
+            guard let data = try? Data(contentsOf: NFXPath.sessionLogURL) else {
+                print("❌ session.log not found")
+                return
+            }
+
+            DispatchQueue.main.async {
+                ShareHelper.presentShareSheet(with: data, fileName: "session.log")
+                self.isSessionLogGenerating = false
+
+            }
         }
     }
 }
 
-import SwiftUI
-import MessageUI
+import UIKit
 
-struct MailView: UIViewControllerRepresentable {
-    let data: Data
+enum ShareHelper {
+    static func presentShareSheet(with data: Data, fileName: String) {
+        // Create temp file URL
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(fileName)
 
-    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-        func mailComposeController(_ controller: MFMailComposeViewController,
-                                   didFinishWith result: MFMailComposeResult,
-                                   error: Error?) {
-            controller.dismiss(animated: true)
+        // Write data to temp file
+        do {
+            try data.write(to: tempURL, options: .atomic)
+        } catch {
+            print("❌ Failed to write temp log file: \(error)")
+            return
         }
-    }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
+        // Prepare activity controller
+        let activityVC = UIActivityViewController(
+            activityItems: [tempURL],
+            applicationActivities: nil
+        )
 
-    func makeUIViewController(context: Context) -> MFMailComposeViewController {
-        let mail = MFMailComposeViewController()
-        mail.mailComposeDelegate = context.coordinator
-        mail.setSubject("netfox log - Session Log \(Date())")
-        mail.addAttachmentData(data, mimeType: "text/plain", fileName: NFXPath.sessionLogName)
-        return mail
-    }
+        // Present on top-most UIViewController
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.keyWindow,
+              let topVC = window.rootViewController?.topMostViewController()
+        else {
+            print("❌ Failed to find top view controller!")
+            return
+        }
 
-    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
+        topVC.present(activityVC, animated: true)
+    }
 }
 
+extension UIViewController {
+    func topMostViewController() -> UIViewController {
+        if let presented = self.presentedViewController {
+            return presented.topMostViewController()
+        }
+
+        if let nav = self as? UINavigationController {
+            return nav.visibleViewController?.topMostViewController() ?? nav
+        }
+
+        if let tab = self as? UITabBarController {
+            return tab.selectedViewController?.topMostViewController() ?? tab
+        }
+
+        return self
+    }
+}
+
+extension UIWindowScene {
+    var keyWindow: UIWindow? {
+        self.windows.first(where: { $0.isKeyWindow })
+    }
+}

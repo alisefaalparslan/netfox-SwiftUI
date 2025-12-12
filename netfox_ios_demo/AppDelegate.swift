@@ -9,16 +9,14 @@
 import UIKit
 import netfox_ios
 
-@UIApplicationMain
+@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
         NFX.sharedInstance().start()
-        
+
         return true
     }
 }
-

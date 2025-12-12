@@ -25,6 +25,8 @@ final class PerformanceMonitoringViewModel: ObservableObject {
     @Published var fpsMin: Double = .infinity
     @Published var fpsAvg: Double = 0
 
+    @Published var isActive: Bool = NFXHTTPModelManager.shared.sharedMonitorConfig.isActive
+
     private var memoryCount: Double = 0
     private var cpuCount: Double = 0
     private var fpsCount: Double = 0
@@ -72,12 +74,24 @@ final class PerformanceMonitoringViewModel: ObservableObject {
             }
             fpsMonitor.start(with: store.fpsCheckInterval)
         }
+
+        store.$isActive
+            .sink { newValue in
+                self.isActive = newValue
+            }
+            .store(in: &cancellables)
     }
 
     func stop() {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         fpsMonitor.stop()
+
+        store.$isActive
+            .sink { newValue in
+                self.isActive = newValue
+            }
+            .store(in: &cancellables)
     }
 
     private func updateMemory() {
@@ -115,5 +129,26 @@ final class PerformanceMonitoringViewModel: ObservableObject {
             cpuCount += 1
             cpuAvg = (cpuAvg * (cpuCount - 1) + cpu) / cpuCount
         }
+    }
+
+    func resetCPU() {
+        cpuMax = 0
+        cpuMin = .infinity
+        cpuAvg = 0
+        cpuCount = 0
+    }
+
+    func resetMEM() {
+        memoryMax = 0
+        memoryMin = .infinity
+        memoryAvg = 0
+        memoryCount = 0
+    }
+
+    func resetFPS() {
+        fpsMax = 0
+        fpsMin = .infinity
+        fpsAvg = 0
+        fpsCount = 0
     }
 }

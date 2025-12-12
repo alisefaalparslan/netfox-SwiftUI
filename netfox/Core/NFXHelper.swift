@@ -227,7 +227,7 @@ extension URLRequest {
         return String(Double(timeoutInterval))
     }
     
-    func getNFXHeaders() -> [AnyHashable: Any] {
+    func getNFXHeaders() -> [String : String] {
         if let httpHeaders = allHTTPHeaderFields {
             return httpHeaders
         } else {
@@ -266,8 +266,8 @@ extension URLResponse {
         return (self as? HTTPURLResponse)?.statusCode ?? 999
     }
     
-    func getNFXHeaders() -> [AnyHashable: Any] {
-        return (self as? HTTPURLResponse)?.allHeaderFields ?? [:]
+    func getNFXHeaders() -> [String: String] {
+        return (self as? HTTPURLResponse)?.allHeaderFields as? [String: String] ?? [:]
     }
 }
 
@@ -403,39 +403,46 @@ struct NFXPath {
 
 
 extension String {
-    
-    func appendToFileURL(_ fileURL: URL) {
-        guard let fileHandle = try? FileHandle(forWritingTo: fileURL) else {
-            write(to: fileURL)
-            return
-        }
 
-        let data = data(using: .utf8)!
-        
-        if #available(iOS 13.4, macOS 10.15.4, *) {
-            do {
-                try fileHandle.seekToEnd()
-                try fileHandle.write(contentsOf: data)
-            } catch let error {
-                print("[NFX]: Failed to append [\(self.prefix(128))] to \(fileURL), trying to create new file - \(error.localizedDescription)")
-                write(to: fileURL)
+    private static let fileWriteQueue = DispatchQueue(
+        label: "nfx.file.write.queue",
+        qos: .utility
+    )
+
+    func appendToFileURL(_ fileURL: URL) {
+        let text = self
+
+        Self.fileWriteQueue.async {
+            guard let data = text.data(using: .utf8) else { return }
+
+            // Try appending to existing file
+            if let handle = try? FileHandle(forWritingTo: fileURL) {
+                do {
+                    try handle.seekToEnd()
+                    try handle.write(contentsOf: data)
+                } catch {
+                    print("[NFX]: Failed to append: \(error.localizedDescription)")
+                    Self.atomicWrite(data, to: fileURL)
+                }
+
+                do { try handle.close() } catch {}
+                return
             }
-        } else {
-            // TODO: replace FileHandle with more safe way, possible crash on iOS <13.4 https://github.com/kasketis/netfox/issues/221
-            fileHandle.seekToEndOfFile()
-            fileHandle.write(data)
+
+            // File doesn't exist → create atomically
+            Self.atomicWrite(data, to: fileURL)
         }
     }
-    
-    private func write(to fileURL: URL) {
+
+    private static func atomicWrite(_ data: Data, to url: URL) {
         do {
-            try write(to: fileURL, atomically: true, encoding: .utf8)
-        } catch let error {
-            print("[NFX]: Failed to save [\(self.prefix(128))] to \(fileURL) - \(error.localizedDescription)")
+            try data.write(to: url, options: .atomic)
+        } catch {
+            print("[NFX]: Failed atomic write: \(error.localizedDescription)")
         }
     }
-    
 }
+
 
 @objc extension URLSessionConfiguration {
     private static var firstOccurrence = true

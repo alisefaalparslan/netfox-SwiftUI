@@ -125,7 +125,7 @@ extension NFXProtocol: URLSessionDataDelegate {
         }
         
         model.saveRequestBody(request)
-        model.logRequest(request)
+//        model.logRequest(request)
         
         if error != nil {
             model.saveErrorResponse()

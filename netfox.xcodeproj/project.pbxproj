@@ -7,18 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		026274D9214C6BC400AE1BDF /* WKWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026274D8214C6BC400AE1BDF /* WKWebViewController.swift */; };
 		028AEDB62E1951770080CB02 /* FilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028AEDB52E19516B0080CB02 /* FilterView.swift */; };
+		02BF013D2EEC9DE2007880BE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BF013C2EEC9DE2007880BE /* SceneDelegate.swift */; };
 		719756B3279C7EC500402E07 /* netfox_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3BC020F1C09CDA000C17F3A /* netfox_ios.framework */; };
 		719756B4279C7EC500402E07 /* netfox_ios.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B3BC020F1C09CDA000C17F3A /* netfox_ios.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8201A39D204E3E3F00AB2C3D /* NFXAuthenticationChallengeSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8201A39C204E3E3F00AB2C3D /* NFXAuthenticationChallengeSender.swift */; };
 		8229AD651F8FB34300A9D613 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8229AD641F8FB34300A9D613 /* AppDelegate.swift */; };
-		8229AD671F8FB34300A9D613 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8229AD661F8FB34300A9D613 /* ImageViewController.swift */; };
 		8229AD6A1F8FB34300A9D613 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8229AD681F8FB34300A9D613 /* Main.storyboard */; };
 		8229AD6C1F8FB34300A9D613 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8229AD6B1F8FB34300A9D613 /* Assets.xcassets */; };
 		8229AD6F1F8FB34300A9D613 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8229AD6D1F8FB34300A9D613 /* LaunchScreen.storyboard */; };
-		82F6E1031F8FD81C002B31BD /* TextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F6E1021F8FD81C002B31BD /* TextViewController.swift */; };
-		82F6E1051F8FF55D002B31BD /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F6E1041F8FF55D002B31BD /* WebViewController.swift */; };
 		B3F8BA821C833ABC00F9FBEA /* NFX.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F8BA711C833ABC00F9FBEA /* NFX.swift */; };
 		B3F8BA8E1C833ABC00F9FBEA /* NFXHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F8BA771C833ABC00F9FBEA /* NFXHelper.swift */; };
 		B3F8BA901C833ABC00F9FBEA /* NFXHTTPModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F8BA781C833ABC00F9FBEA /* NFXHTTPModel.swift */; };
@@ -60,18 +57,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		026274D8214C6BC400AE1BDF /* WKWebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WKWebViewController.swift; sourceTree = "<group>"; };
 		028AEDB52E19516B0080CB02 /* FilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterView.swift; sourceTree = "<group>"; };
+		02BF013C2EEC9DE2007880BE /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		8201A39C204E3E3F00AB2C3D /* NFXAuthenticationChallengeSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFXAuthenticationChallengeSender.swift; sourceTree = "<group>"; };
 		8229AD621F8FB34300A9D613 /* netfox_ios_demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = netfox_ios_demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8229AD641F8FB34300A9D613 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		8229AD661F8FB34300A9D613 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		8229AD691F8FB34300A9D613 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		8229AD6B1F8FB34300A9D613 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8229AD6E1F8FB34300A9D613 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8229AD701F8FB34300A9D613 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		82F6E1021F8FD81C002B31BD /* TextViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextViewController.swift; sourceTree = "<group>"; };
-		82F6E1041F8FF55D002B31BD /* WebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		B3BC020F1C09CDA000C17F3A /* netfox_ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = netfox_ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3F8BA711C833ABC00F9FBEA /* NFX.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NFX.swift; sourceTree = "<group>"; };
 		B3F8BA771C833ABC00F9FBEA /* NFXHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NFXHelper.swift; sourceTree = "<group>"; };
@@ -91,6 +85,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		028AF9EA2E253E1E0080CB02 /* PerformansMonitoring */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PerformansMonitoring; sourceTree = "<group>"; };
+		02BF013E2EECAC93007880BE /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,15 +110,13 @@
 		8229AD631F8FB34300A9D613 /* netfox_ios_demo */ = {
 			isa = PBXGroup;
 			children = (
+				02BF013E2EECAC93007880BE /* Views */,
 				8229AD641F8FB34300A9D613 /* AppDelegate.swift */,
-				8229AD661F8FB34300A9D613 /* ImageViewController.swift */,
 				8229AD681F8FB34300A9D613 /* Main.storyboard */,
 				8229AD6B1F8FB34300A9D613 /* Assets.xcassets */,
 				8229AD6D1F8FB34300A9D613 /* LaunchScreen.storyboard */,
 				8229AD701F8FB34300A9D613 /* Info.plist */,
-				82F6E1021F8FD81C002B31BD /* TextViewController.swift */,
-				82F6E1041F8FF55D002B31BD /* WebViewController.swift */,
-				026274D8214C6BC400AE1BDF /* WKWebViewController.swift */,
+				02BF013C2EEC9DE2007880BE /* SceneDelegate.swift */,
 			);
 			path = netfox_ios_demo;
 			sourceTree = "<group>";
@@ -221,6 +214,9 @@
 			dependencies = (
 				8229AD751F8FB37000A9D613 /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				02BF013E2EECAC93007880BE /* Views */,
+			);
 			name = netfox_ios_demo;
 			productName = netfox_ios_demo;
 			productReference = 8229AD621F8FB34300A9D613 /* netfox_ios_demo.app */;
@@ -315,11 +311,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				026274D9214C6BC400AE1BDF /* WKWebViewController.swift in Sources */,
-				8229AD671F8FB34300A9D613 /* ImageViewController.swift in Sources */,
 				8229AD651F8FB34300A9D613 /* AppDelegate.swift in Sources */,
-				82F6E1031F8FD81C002B31BD /* TextViewController.swift in Sources */,
-				82F6E1051F8FF55D002B31BD /* WebViewController.swift in Sources */,
+				02BF013D2EEC9DE2007880BE /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -582,8 +575,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -611,7 +607,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

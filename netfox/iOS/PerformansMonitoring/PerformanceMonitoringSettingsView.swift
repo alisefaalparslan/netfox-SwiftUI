@@ -199,7 +199,7 @@ final class NetfoxSettingsStore: ObservableObject {
     init() {
         defaults = UserDefaults(suiteName: "netfox") ?? .standard
 
-        let isActiveOnAppStart = NetfoxSettingsStore.getBool("isActiveOnAppStart")
+        let isActiveOnAppStart = NetfoxSettingsStore.getBool("isActiveOnAppStart", default: false)
         self.isActiveOnAppStart = isActiveOnAppStart
 
         if isActiveOnAppStart {

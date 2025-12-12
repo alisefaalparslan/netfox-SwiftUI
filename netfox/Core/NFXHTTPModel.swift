@@ -29,7 +29,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     @objc public var requestTime: String?
     @objc public var requestTimeSecond: String?
     @objc public var requestTimeout: String?
-    @objc public var requestHeaders: [AnyHashable: Any]?
+    @objc public var requestHeaders: [String: String]?
     public var requestBodyLength: Int?
     @objc public var requestType: String?
     @objc public var requestCurl: String?
@@ -39,7 +39,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     @objc public var responseDate: Date?
     @objc public var responseTime: String?
     @objc public var responseTimeSecond: String?
-    @objc public var responseHeaders: [AnyHashable: Any]?
+    @objc public var responseHeaders: [String: String]?
     public var responseBodyLength: Int?
     
     public var timeInterval: Float?
@@ -62,16 +62,12 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         requestCachePolicy = request.getNFXCachePolicy()
         requestTimeout = request.getNFXTimeout()
         requestHeaders = request.getNFXHeaders()
-        requestType = requestHeaders?["Content-Type"] as! String?
+        requestType = requestHeaders?["Content-Type"]
         requestCurl = request.getCurl()
     }
     
     func saveRequestBody(_ request: URLRequest) {
         saveRequestBodyData(request.getNFXBody())
-    }
-    
-    func logRequest(_ request: URLRequest) {
-        formattedRequestLogEntry().appendToFileURL(NFXPath.sessionLogURL)
     }
     
     func saveErrorResponse() {
@@ -88,7 +84,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         
         let headers = response.getNFXHeaders()
         
-        if let contentType = headers["Content-Type"] as? String {
+        if let contentType = headers["Content-Type"] {
             let responseType = contentType.components(separatedBy: ";")[0]
             shortType = HTTPModelShortType(contentType: responseType)
             self.responseType = responseType
@@ -97,7 +93,8 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         timeInterval = Float(responseDate!.timeIntervalSince(requestDate!))
         
         saveResponseBodyData(data)
-        formattedResponseLogEntry().appendToFileURL(NFXPath.sessionLogURL)
+
+        "\(formattedRequestLogEntry())\n\(formattedResponseLogEntry())".appendToFileURL(NFXPath.sessionLogURL)
     }
     
     func saveRequestBodyData(_ data: Data) {
@@ -276,7 +273,11 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         if let requestHeaders = self.requestHeaders {
             log.append("[Request Headers]\n\(requestHeaders)\n")
         }
-        
+
+        if let cURL = self.requestCurl {
+            log.append("[Request cURL]\n \(cURL)\n")
+        }
+
         log.append("[Request Body]\n \(getRequestBody())\n")
         
         if let requestURL = self.requestURL {
@@ -314,7 +315,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         }
         
         log.append("[Response Body]\n \(getResponseBody())\n")
-        
+
         if let requestURL = self.requestURL {
             log.append("-------END RESPONSE - \(requestURL) -------\n\n")
         }

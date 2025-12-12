@@ -37,7 +37,16 @@ struct ListView: View {
             .navigationTitle("")
             .toolbar {
 
+
                 ToolbarItemGroup(placement: .navigationBarLeading) {
+                    Button(action: { showClearConfirmation = true }) {
+                        Image(systemName: "trash")
+                    }
+
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: "gear")
+                    }
+
 
                     Button(action: { showToolBar = true }) {
                         Image(systemName: "line.3.horizontal.decrease")
@@ -46,28 +55,33 @@ struct ListView: View {
                     Button(action: { showSourceBar = true }) {
                         Image(systemName: "cpu")
                     }
-
-                    Text("T: \(filteredData.count)")
-                        .font(.system(size: 12))
-
-                    Text("S: \(String(format: "%.2f", filteredData.max(by: { $0.timeInterval ?? 0 < $1.timeInterval ?? 0 })?.timeInterval ?? 0.0))")
-                        .font(.system(size: 12))
                 }
 
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button(action: { showClearConfirmation = true }) {
-                        Image(systemName: "trash")
+                if #available(iOS 26.0, *) {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        
+                        Text("T: \(filteredData.count)")
+                            .font(.system(size: 12))
+                        
+                        Text("S: \(String(format: "%.2f", filteredData.max(by: { $0.timeInterval ?? 0 < $1.timeInterval ?? 0 })?.timeInterval ?? 0.0))")
+                            .font(.system(size: 12))
                     }
+                    .sharedBackgroundVisibility(.hidden)
+                } else {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
 
-                    Button(action: { showSettings = true }) {
-                        Image(systemName: "gear")
+                        Text("T: \(filteredData.count)")
+                            .font(.system(size: 12))
+
+                        Text("S: \(String(format: "%.2f", filteredData.max(by: { $0.timeInterval ?? 0 < $1.timeInterval ?? 0 })?.timeInterval ?? 0.0))")
+                            .font(.system(size: 12))
                     }
                 }
+
+
             }
             .searchable(text: $filter, placement: .navigationBarDrawer(displayMode: .always))
-            .onChange(of: selectedStatus) { newValue in
 
-            }
             .confirmationDialog("Clear data?", isPresented: $showClearConfirmation) {
                 Button("Yes", role: .destructive) {
                     NFX.sharedInstance().clearOldData()
