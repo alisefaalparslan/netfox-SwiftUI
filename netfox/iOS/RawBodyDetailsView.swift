@@ -9,7 +9,6 @@ import SwiftUI
 struct RawBodyDetailsView: View {
     let bodyType: NFXBodyType
     let selectedModel: NFXHTTPModel
-    @State private var showCopyAlert = false
 
     private var bodyText: String {
         switch bodyType {
@@ -22,36 +21,14 @@ struct RawBodyDetailsView: View {
 
     var body: some View {
         ScrollView {
+            CreativeCopyButton(textToCopy: bodyText)
+                .padding()
+
             Text(bodyText)
                 .font(.system(size: 13, design: .monospaced))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .contextMenu {
-                    Button(action: {
-                        UIPasteboard.general.string = bodyText
-                        showCopyAlert = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                            showCopyAlert = false
-                        }
-                    }) {
-                        Label("Copy Text", systemImage: "doc.on.doc")
-                    }
-                }
         }
         .navigationTitle("Body details")
-        .overlay(
-            Group {
-                if showCopyAlert {
-                    Text("Text Copied!")
-                        .font(.caption)
-                        .padding(8)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(8)
-                        .transition(.opacity)
-                        .padding()
-                }
-            },
-            alignment: .top
-        )
     }
 }

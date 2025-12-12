@@ -33,8 +33,6 @@ import UniformTypeIdentifiers
 
 struct DetailsView: View {
     @State private var selectedTab: DetailsTab = .info
-    @State private var shareContent: String? = nil
-    @State private var showShareSheet = false
     @State private var showResponseBodyDetails = false
     @State private var showRequestBodyDetails = false
 
@@ -64,18 +62,13 @@ struct DetailsView: View {
 
             ScrollView {
                 VStack(alignment: .leading) {
+
+                    CreativeCopyButton(textToCopy: getClipboardString(for: selectedTab))
+                        .padding(.horizontal)
+
                     Text(getAttributedString(for: selectedTab))
                         .font(.system(size: 13))
                         .padding()
-                        .onLongPressGesture {
-                            UIPasteboard.general.string = getClipboardString(for: selectedTab)
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        }
-//                        .contextMenu {
-//                            Button("Copy") {
-//                                UIPasteboard.general.string = getClipboardString(for: selectedTab).description
-//                            }
-//                        }
 
                     if selectedTab == .request {
                         if selectedModel.requestBodyLength > 1024 {
@@ -112,11 +105,6 @@ struct DetailsView: View {
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
-            }
-        }
-        .sheet(isPresented: $showShareSheet) {
-            if let shareContent = shareContent {
-                ShareSheet(activityItems: [shareContent])
             }
         }
         .navigationDestination(isPresented: $showResponseBodyDetails) {
@@ -259,13 +247,11 @@ extension DetailsView {
                 content += responseFile
             }
         }
-        shareContent = content
-        showShareSheet = true
+        ShareHelper.presentShareSheet(with: content)
     }
 
     func shareCurl(_ curl: String) {
-        shareContent = curl
-        showShareSheet = true
+        ShareHelper.presentShareSheet(with: curl)
     }
 }
 
@@ -283,7 +269,54 @@ struct ShareSheet: UIViewControllerRepresentable {
 
 
 #Preview {
-    DetailsView(
-        selectedModel: NFXHTTPModel.mock
-    )
+    NavigationView {
+        DetailsView(
+            selectedModel: NFXHTTPModel.mock
+        )
+    }
+}
+
+struct CreativeCopyButton: View {
+    let textToCopy: String
+
+    @State private var isCopied = false
+
+    var body: some View {
+        ZStack {
+
+            // MAIN BUTTON
+            Button(action: copyAction) {
+                HStack(spacing: 8) {
+                    Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
+                        .frame(width: 20, height: 20)
+
+                    Text(isCopied ? "Copied!" : "Copy")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.blue)
+                .clipShape(Capsule())
+            }
+
+        }
+        .onChange(of: isCopied) { old, new in
+            if new {
+                // Fade-out timer
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+                    withAnimation(.spring()) {
+                        isCopied = false
+                    }
+                }
+            }
+        }
+    }
+
+    private func copyAction() {
+        UIPasteboard.general.string = textToCopy
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
+        isCopied = true
+    }
 }

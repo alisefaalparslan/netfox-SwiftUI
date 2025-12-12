@@ -9,15 +9,38 @@
 import SwiftUI
 import WebKit
 
-struct WebView: UIViewRepresentable {
-    let url: URL
+class WebViewController: UIViewController {
 
-    func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
-        let request = URLRequest(url: url)
-        webView.load(request)
-        return webView
+    let webView = UIWebView()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.backgroundColor = .white
+
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(webView)
+
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        let url = URL(string: "https://github.com/kasketis/netfox")!
+        webView.loadRequest(URLRequest(url: url))
+    }
+}
+
+struct WebView: UIViewControllerRepresentable {
+
+    func makeUIViewController(context: Context) -> WebViewController {
+        let vc = WebViewController()
+        return vc
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
+    func updateUIViewController(_ uiViewController: WebViewController, context: Context) {
+        // Nothing to update
+    }
 }

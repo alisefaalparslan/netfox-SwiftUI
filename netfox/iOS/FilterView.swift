@@ -13,6 +13,13 @@ struct FilterView: View {
     @Binding var selectedSortByStartTime: FiltersSortByTimeType
 
     @State var ignoredDomains: [String]
+    @State private var searchText: String = ""
+    var filteredDomains: [String] {
+        if searchText.isEmpty {
+            return allDomains
+        }
+        return allDomains.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
 
     var allDomains: [String]
 
@@ -20,6 +27,63 @@ struct FilterView: View {
 
     var body: some View {
         List {
+
+            Section(header: Text("Tracked Domains").font(.headline)) {
+
+                TextField("Search domain...", text: $searchText)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .submitLabel(.done)
+                    .font(.title2)
+                    .overlay(
+                        HStack {
+                            Spacer()
+                            if searchText.isEmpty {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.primary)
+                            } else {
+                                Image(systemName: "xmark")
+                                    .foregroundColor(.primary)
+                                    .onTapGesture {
+                                        searchText = ""
+                                    }
+                            }
+                        }
+                    )
+                    .padding(.horizontal, 20)
+                    .frame(height: 58)
+                    .background(RoundedRectangle(cornerRadius: 15).fill(.secondary))
+
+                // Select / Deselect Buttons
+                Button("Select All") {
+                    ignoredDomains = []
+                }
+
+                Button("Deselect All") {
+                    ignoredDomains = allDomains
+                }
+
+                // Filtered list
+                ForEach(filteredDomains, id: \.self) { domain in
+                    HStack {
+                        Text(domain)
+                        Spacer()
+                        if !ignoredDomains.contains(domain) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.accentColor)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if !ignoredDomains.contains(domain) {
+                            ignoredDomains.append(domain)
+                        } else {
+                            ignoredDomains.removeAll { $0 == domain }
+                        }
+                    }
+                }
+            }
+
             Section(header: Text("Status Code").font(.headline)) {
                 ForEach(FiltersStatusType.allCases) { model in
                     HStack {
@@ -84,36 +148,6 @@ struct FilterView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         selectedSortByStartTime = model
-                    }
-                }
-            }
-
-            Section(header: Text("Tracked Domains").font(.headline)) {
-
-                Button("Select All") {
-                    ignoredDomains = []
-                }
-
-                Button("Deselect All") {
-                    ignoredDomains = allDomains
-                }
-
-                ForEach(allDomains, id: \.self) { domain in
-                    HStack {
-                        Text(domain)
-                        Spacer()
-                        if !ignoredDomains.contains(domain) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.accentColor)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if !ignoredDomains.contains(domain) {
-                            ignoredDomains.append(domain)
-                        } else {
-                            ignoredDomains.removeAll { $0 == domain }
-                        }
                     }
                 }
             }

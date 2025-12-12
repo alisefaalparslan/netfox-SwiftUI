@@ -181,6 +181,25 @@ enum ShareHelper {
 
         topVC.present(activityVC, animated: true)
     }
+    
+    static func presentShareSheet(with text: String) {
+            // Activity controller'a direkt string veriyoruz
+            let activityVC = UIActivityViewController(
+                activityItems: [text],
+                applicationActivities: nil
+            )
+
+            // Top-most VC alma
+            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = scene.keyWindow,
+                  let topVC = window.rootViewController?.topMostViewController()
+            else {
+                print("❌ Failed to find top view controller!")
+                return
+            }
+
+            topVC.present(activityVC, animated: true)
+        }
 }
 
 extension UIViewController {

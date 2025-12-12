@@ -11,7 +11,7 @@ import SwiftUI
 struct BaseView: View {
     var body: some View {
         TabView {
-            WebView(url: URL(string: "https://github.com/kasketis/netfox")!)
+            WebView()
                 .tabItem {
                     Label("Web", systemImage: "globe")
                 }
