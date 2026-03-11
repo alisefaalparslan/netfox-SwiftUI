@@ -16,6 +16,7 @@ struct ListView: View {
     @State private var showSettings = false
     @State private var showToolBar = false
     @State private var showSourceBar = false
+    @State private var showChartView = false
     @Environment(\.presentationMode) private var presentationMode
 
     @State var selectedStatus: FiltersStatusType = .all
@@ -54,24 +55,30 @@ struct ListView: View {
                     Button(action: { showSourceBar = true }) {
                         Image(systemName: "cpu")
                     }
+
+                    Button(action: { showChartView = true }) {
+                        Image(systemName: "chart.bar.xaxis")
+                    }
                 }
 
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Text("T: \(filteredModels.count)")
-                        .font(.system(size: 12))
-                    
-                    Text("S: \(String(format: "%.2f", maxTimeInterval))")
-                        .font(.system(size: 12))
+                ToolbarItemGroup(placement: .status) {
+                    HStack {
+                        Text("Total: \(filteredModels.count)")
+
+                        Text("Slowest: \(String(format: "%.2f", maxTimeInterval))")
+
+                    }
+                    .frame(maxWidth: .infinity)
                 }
             }
             .searchable(text: $filter, placement: .navigationBarDrawer(displayMode: .always))
-            .onChange(of: allModels) { _ in updateFilteredData() }
-            .onChange(of: filter) { _ in updateFilteredData() }
-            .onChange(of: selectedStatus) { _ in updateFilteredData() }
-            .onChange(of: selectedSortByDurationTime) { _ in updateFilteredData() }
-            .onChange(of: selectedSortByStartTime) { _ in updateFilteredData() }
-            .onChange(of: selectedSortByFinishTime) { _ in updateFilteredData() }
-            .onChange(of: ignoredDomains) { _ in updateFilteredData() }
+            .onChange(of: allModels) { updateFilteredData() }
+            .onChange(of: filter) { updateFilteredData() }
+            .onChange(of: selectedStatus) { updateFilteredData() }
+            .onChange(of: selectedSortByDurationTime) { updateFilteredData() }
+            .onChange(of: selectedSortByStartTime) { updateFilteredData() }
+            .onChange(of: selectedSortByFinishTime) { updateFilteredData() }
+            .onChange(of: ignoredDomains) { updateFilteredData() }
             .confirmationDialog("Clear data?", isPresented: $showClearConfirmation) {
                 Button("Yes", role: .destructive) {
                     NFX.sharedInstance().clearOldData()
@@ -94,6 +101,9 @@ struct ListView: View {
             }
             .sheet(isPresented: $showSourceBar) {
                 PerformanceMonitoringSettingsView()
+            }
+            .sheet(isPresented: $showChartView) {
+                NFXRequestChartView(models: filteredModels)
             }
             .onAppear {
                 NFXHTTPModelManager.shared.publisher.subscribe { models in

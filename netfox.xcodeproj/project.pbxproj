@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		028AEDB62E1951770080CB02 /* FilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028AEDB52E19516B0080CB02 /* FilterView.swift */; };
+		02A303522F61F49C00FA78FE /* NFXRequestChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A303512F61F49C00FA78FE /* NFXRequestChartView.swift */; };
 		02BF013D2EEC9DE2007880BE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BF013C2EEC9DE2007880BE /* SceneDelegate.swift */; };
 		719756B3279C7EC500402E07 /* netfox_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3BC020F1C09CDA000C17F3A /* netfox_ios.framework */; };
 		719756B4279C7EC500402E07 /* netfox_ios.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B3BC020F1C09CDA000C17F3A /* netfox_ios.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -58,6 +59,7 @@
 
 /* Begin PBXFileReference section */
 		028AEDB52E19516B0080CB02 /* FilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterView.swift; sourceTree = "<group>"; };
+		02A303512F61F49C00FA78FE /* NFXRequestChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFXRequestChartView.swift; sourceTree = "<group>"; };
 		02BF013C2EEC9DE2007880BE /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		8201A39C204E3E3F00AB2C3D /* NFXAuthenticationChallengeSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFXAuthenticationChallengeSender.swift; sourceTree = "<group>"; };
 		8229AD621F8FB34300A9D613 /* netfox_ios_demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = netfox_ios_demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -170,6 +172,7 @@
 				B3F8BAA51C833AC700F9FBEA /* DetailsView.swift */,
 				B3F8BAA71C833AC700F9FBEA /* InfoView.swift */,
 				B3F8BAA81C833AC700F9FBEA /* ListItemView.swift */,
+				02A303512F61F49C00FA78FE /* NFXRequestChartView.swift */,
 				B3F8BAA91C833AC700F9FBEA /* ListView.swift */,
 				B3F8BAAA1C833AC700F9FBEA /* SettingsView.swift */,
 				B3F8BAAB1C833AC700F9FBEA /* StatisticsView.swift */,
@@ -322,6 +325,7 @@
 			files = (
 				B3F8BA821C833ABC00F9FBEA /* NFX.swift in Sources */,
 				B3F8BA901C833ABC00F9FBEA /* NFXHTTPModel.swift in Sources */,
+				02A303522F61F49C00FA78FE /* NFXRequestChartView.swift in Sources */,
 				8201A39D204E3E3F00AB2C3D /* NFXAuthenticationChallengeSender.swift in Sources */,
 				B3F8BAB21C833AC700F9FBEA /* StatisticsView.swift in Sources */,
 				B3F8BAB11C833AC700F9FBEA /* SettingsView.swift in Sources */,
