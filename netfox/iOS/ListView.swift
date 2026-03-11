@@ -17,6 +17,7 @@ struct ListView: View {
     @State private var showToolBar = false
     @State private var showSourceBar = false
     @State private var showChartView = false
+    @State private var selectedQuickDomain: String? = nil
     @Environment(\.presentationMode) private var presentationMode
 
     @State var selectedStatus: FiltersStatusType = .all
@@ -59,6 +60,26 @@ struct ListView: View {
                     Button(action: { showChartView = true }) {
                         Image(systemName: "chart.bar.xaxis")
                     }
+
+                    if selectedQuickDomain != nil {
+                        Button(action: { selectedQuickDomain = nil }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                        }
+                    } else {
+                        Menu {
+                            Section("Filter by Domain") {
+                                ForEach(allDomains, id: \.self) { domain in
+                                    Button(action: { selectedQuickDomain = domain }) {
+                                        Label(domain, systemImage: selectedQuickDomain == domain ? "checkmark.circle.fill" : "globe")
+                                    }
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "globe")
+                                .foregroundColor(selectedQuickDomain != nil ? .accentColor : .primary)
+                        }
+                    }
                 }
 
                 ToolbarItemGroup(placement: .status) {
@@ -79,6 +100,7 @@ struct ListView: View {
             .onChange(of: selectedSortByStartTime) { updateFilteredData() }
             .onChange(of: selectedSortByFinishTime) { updateFilteredData() }
             .onChange(of: ignoredDomains) { updateFilteredData() }
+            .onChange(of: selectedQuickDomain) { updateFilteredData() }
             .confirmationDialog("Clear data?", isPresented: $showClearConfirmation) {
                 Button("Yes", role: .destructive) {
                     NFX.sharedInstance().clearOldData()
@@ -137,7 +159,12 @@ struct ListView: View {
         let domains = Set(currentModels.compactMap { $0.requestHost })
         self.allDomains = Array(domains).sorted()
 
-        // 2. Apply search filter
+        // 2. Apply quick domain filter
+        if let domain = selectedQuickDomain {
+            currentModels = currentModels.filter { $0.requestHost == domain }
+        }
+
+        // 3. Apply search filter
         if !filter.isEmpty {
             let query = filter.lowercased()
             currentModels = currentModels.filter {
