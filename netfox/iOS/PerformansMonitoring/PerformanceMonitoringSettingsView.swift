@@ -9,10 +9,10 @@
 import SwiftUI
 
 struct PerformanceMonitoringSettingsView: View {
-
-    @StateObject private var store = NFXHTTPModelManager.shared.sharedMonitorConfig
+    private var store = NFXHTTPModelManager.shared.sharedMonitorConfig
 
     var body: some View {
+        @Bindable var store = store
         List {
             Section {
 
@@ -27,29 +27,20 @@ struct PerformanceMonitoringSettingsView: View {
 
             MetricSectionView(
                 metricName: "CPU",
-                isMonitoring: $store.cpuMonitoringEnabled,
-                showAvg: $store.cpuShowAvg,
-                showMax: $store.cpuShowMax,
-                showMin: $store.cpuShowMin,
-                interval: $store.cpuCheckInterval
+                type: .cpu,
+                store: store
             )
 
             MetricSectionView(
                 metricName: "MEM",
-                isMonitoring: $store.memMonitoringEnabled,
-                showAvg: $store.memShowAvg,
-                showMax: $store.memShowMax,
-                showMin: $store.memShowMin,
-                interval: $store.memCheckInterval
+                type: .mem,
+                store: store
             )
 
             MetricSectionView(
                 metricName: "FPS",
-                isMonitoring: $store.fpsMonitoringEnabled,
-                showAvg: $store.fpsShowAvg,
-                showMax: $store.fpsShowMax,
-                showMin: $store.fpsShowMin,
-                interval: $store.fpsCheckInterval
+                type: .fps,
+                store: store
             )
 
             Section {
@@ -80,13 +71,11 @@ struct PerformanceMonitoringSettingsView: View {
 }
 
 struct MetricSectionView: View {
+    enum MetricType { case cpu, mem, fps }
+    
     let metricName: String
-
-    @Binding var isMonitoring: Bool
-    @Binding var showAvg: Bool
-    @Binding var showMax: Bool
-    @Binding var showMin: Bool
-    @Binding var interval: Double
+    let type: MetricType
+    @Bindable var store: NetfoxSettingsStore
 
     @State private var textValue: String = ""
 
@@ -94,19 +83,19 @@ struct MetricSectionView: View {
         Section {
             Text(metricName).font(.headline)
 
-            Toggle(isOn: $isMonitoring) {
+            Toggle(isOn: binding(for: .isMonitoring)) {
                 Text("Monitoring state:")
             }
 
-            Toggle(isOn: $showAvg) {
+            Toggle(isOn: binding(for: .showAvg)) {
                 Text("Show avg:")
             }
 
-            Toggle(isOn: $showMax) {
+            Toggle(isOn: binding(for: .showMax)) {
                 Text("Show max:")
             }
 
-            Toggle(isOn: $showMin) {
+            Toggle(isOn: binding(for: .showMin)) {
                 Text("Show min:")
             }
 
@@ -120,7 +109,7 @@ struct MetricSectionView: View {
                     .disabled(!isMonitoring)
                     .onChange(of: textValue) { newValue in
                         if let doubleValue = Double(newValue) {
-                            interval = doubleValue
+                            setInterval(doubleValue)
                         }
                     }
                     .onAppear {
@@ -129,70 +118,123 @@ struct MetricSectionView: View {
             }
         }
     }
+    
+    private var isMonitoring: Bool {
+        switch type {
+        case .cpu: return store.cpuMonitoringEnabled
+        case .mem: return store.memMonitoringEnabled
+        case .fps: return store.fpsMonitoringEnabled
+        }
+    }
+    
+    private var interval: Double {
+        switch type {
+        case .cpu: return store.cpuCheckInterval
+        case .mem: return store.memCheckInterval
+        case .fps: return store.fpsCheckInterval
+        }
+    }
+    
+    private func setInterval(_ val: Double) {
+        switch type {
+        case .cpu: store.cpuCheckInterval = val
+        case .mem: store.memCheckInterval = val
+        case .fps: store.fpsCheckInterval = val
+        }
+    }
+    
+    private enum PropertyType { case isMonitoring, showAvg, showMax, showMin }
+    
+    private func binding(for prop: PropertyType) -> Binding<Bool> {
+        switch type {
+        case .cpu:
+            switch prop {
+            case .isMonitoring: return $store.cpuMonitoringEnabled
+            case .showAvg: return $store.cpuShowAvg
+            case .showMax: return $store.cpuShowMax
+            case .showMin: return $store.cpuShowMin
+            }
+        case .mem:
+            switch prop {
+            case .isMonitoring: return $store.memMonitoringEnabled
+            case .showAvg: return $store.memShowAvg
+            case .showMax: return $store.memShowMax
+            case .showMin: return $store.memShowMin
+            }
+        case .fps:
+            switch prop {
+            case .isMonitoring: return $store.fpsMonitoringEnabled
+            case .showAvg: return $store.fpsShowAvg
+            case .showMax: return $store.fpsShowMax
+            case .showMin: return $store.fpsShowMin
+            }
+        }
+    }
 }
 
-final class NetfoxSettingsStore: ObservableObject {
+@Observable
+final class NetfoxSettingsStore {
     private let defaults: UserDefaults
 
-    @Published var isActiveOnAppStart: Bool {
+    var isActiveOnAppStart: Bool {
         didSet { defaults.set(isActiveOnAppStart, forKey: "isActiveOnAppStart") }
     }
 
-    @Published var isActive: Bool
+    var isActive: Bool
 
-    @Published var isCollapsedVertical: Bool {
+    var isCollapsedVertical: Bool {
         didSet { defaults.set(isCollapsedVertical, forKey: "isCollapsedVertical") }
     }
 
-    @Published var isCollapsedHorizontal: Bool {
+    var isCollapsedHorizontal: Bool {
         didSet { defaults.set(isCollapsedHorizontal, forKey: "isCollapsedHorizontal") }
     }
 
-    @Published var cpuMonitoringEnabled: Bool {
+    var cpuMonitoringEnabled: Bool {
         didSet { defaults.set(cpuMonitoringEnabled, forKey: "cpuMonitoringEnabled") }
     }
-    @Published var cpuShowAvg: Bool {
+    var cpuShowAvg: Bool {
         didSet { defaults.set(cpuShowAvg, forKey: "cpuShowAvg") }
     }
-    @Published var cpuShowMax: Bool {
+    var cpuShowMax: Bool {
         didSet { defaults.set(cpuShowMax, forKey: "cpuShowMax") }
     }
-    @Published var cpuShowMin: Bool {
+    var cpuShowMin: Bool {
         didSet { defaults.set(cpuShowMin, forKey: "cpuShowMin") }
     }
-    @Published var cpuCheckInterval: Double {
+    var cpuCheckInterval: Double {
         didSet { defaults.set(cpuCheckInterval, forKey: "cpuCheckInterval") }
     }
 
-    @Published var memMonitoringEnabled: Bool {
+    var memMonitoringEnabled: Bool {
         didSet { defaults.set(memMonitoringEnabled, forKey: "memMonitoringEnabled") }
     }
-    @Published var memShowAvg: Bool {
+    var memShowAvg: Bool {
         didSet { defaults.set(memShowAvg, forKey: "memShowAvg") }
     }
-    @Published var memShowMax: Bool {
+    var memShowMax: Bool {
         didSet { defaults.set(memShowMax, forKey: "memShowMax") }
     }
-    @Published var memShowMin: Bool {
+    var memShowMin: Bool {
         didSet { defaults.set(memShowMin, forKey: "memShowMin") }
     }
-    @Published var memCheckInterval: Double {
+    var memCheckInterval: Double {
         didSet { defaults.set(memCheckInterval, forKey: "memCheckInterval") }
     }
 
-    @Published var fpsMonitoringEnabled: Bool {
+    var fpsMonitoringEnabled: Bool {
         didSet { defaults.set(fpsMonitoringEnabled, forKey: "fpsMonitoringEnabled") }
     }
-    @Published var fpsShowAvg: Bool {
+    var fpsShowAvg: Bool {
         didSet { defaults.set(fpsShowAvg, forKey: "fpsShowAvg") }
     }
-    @Published var fpsShowMax: Bool {
+    var fpsShowMax: Bool {
         didSet { defaults.set(fpsShowMax, forKey: "fpsShowMax") }
     }
-    @Published var fpsShowMin: Bool {
+    var fpsShowMin: Bool {
         didSet { defaults.set(fpsShowMin, forKey: "fpsShowMin") }
     }
-    @Published var fpsCheckInterval: Double {
+    var fpsCheckInterval: Double {
         didSet { defaults.set(fpsCheckInterval, forKey: "fpsCheckInterval") }
     }
 

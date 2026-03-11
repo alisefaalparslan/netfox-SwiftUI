@@ -7,55 +7,88 @@
 //
 
 import Foundation
-import Combine
 
-final class PerformanceMonitoringViewModel: ObservableObject {
-    @Published var memoryUsage: Double = 0
-    @Published var memoryMax: Double = 0
-    @Published var memoryMin: Double = .infinity
-    @Published var memoryAvg: Double = 0
+@Observable
+@MainActor
+final class PerformanceMonitoringViewModel {
+    var memoryUsage: Double = 0
+    var memoryMax: Double = 0
+    var memoryMin: Double = .infinity
+    var memoryAvg: Double = 0
+    var memoryHistory: [Double] = []
 
-    @Published var cpuUsage: Double = 0
-    @Published var cpuMax: Double = 0
-    @Published var cpuMin: Double = .infinity
-    @Published var cpuAvg: Double = 0
+    var cpuUsage: Double = 0
+    var cpuMax: Double = 0
+    var cpuMin: Double = .infinity
+    var cpuAvg: Double = 0
+    var cpuHistory: [Double] = []
 
-    @Published var fpsUsage: Double = 0
-    @Published var fpsMax: Double = 0
-    @Published var fpsMin: Double = .infinity
-    @Published var fpsAvg: Double = 0
+    var fpsUsage: Double = 0
+    var fpsMax: Double = 0
+    var fpsMin: Double = .infinity
+    var fpsAvg: Double = 0
+    var fpsHistory: [Double] = []
 
-    @Published var isActive: Bool = NFXHTTPModelManager.shared.sharedMonitorConfig.isActive
+    var thermalState: ProcessInfo.ThermalState = .nominal
+    var activeRequests: Int = 0
+
+    var isActive: Bool {
+        get { store.isActive }
+        set { store.isActive = newValue }
+    }
 
     private var memoryCount: Double = 0
     private var cpuCount: Double = 0
     private var fpsCount: Double = 0
+    private let historyLimit = 30
 
-    private var cancellables = Set<AnyCancellable>()
+    private var monitoringTasks: [Task<Void, Never>] = []
+    private var nfxSubscription: Subscription<[NFXHTTPModel]>?
     private let fpsMonitor = FPSMonitor()
 
-    @Published var store = NFXHTTPModelManager.shared.sharedMonitorConfig
+    var store = NFXHTTPModelManager.shared.sharedMonitorConfig
 
     func start() {
+        stop()
+
+        thermalState = ProcessInfo.processInfo.thermalState
+        monitoringTasks.append(Task {
+            for await _ in NotificationCenter.default.notifications(named: ProcessInfo.thermalStateDidChangeNotification) {
+                self.thermalState = ProcessInfo.processInfo.thermalState
+            }
+        })
+
+        nfxSubscription = NFXHTTPModelManager.shared.publisher.subscribe { [weak self] models in
+            Task { @MainActor in
+                self?.activeRequests = models.filter { $0.responseTime == nil }.count
+            }
+        }
+        activeRequests = NFXHTTPModelManager.shared.filteredModels.filter { $0.responseTime == nil }.count
+
         if store.memMonitoringEnabled {
-            Timer.publish(every: store.memCheckInterval, on: .main, in: .common)
-                .autoconnect()
-                .sink { [weak self] _ in self?.updateMemory() }
-                .store(in: &cancellables)
+            monitoringTasks.append(Task {
+                while !Task.isCancelled {
+                    self.updateMemory()
+                    try? await Task.sleep(nanoseconds: UInt64(store.memCheckInterval * 1_000_000_000))
+                }
+            })
         }
 
         if store.cpuMonitoringEnabled {
-            Timer.publish(every: store.cpuCheckInterval, on: .main, in: .common)
-                .autoconnect()
-                .sink { [weak self] _ in self?.updateCPU() }
-                .store(in: &cancellables)
+            monitoringTasks.append(Task {
+                while !Task.isCancelled {
+                    self.updateCPU()
+                    try? await Task.sleep(nanoseconds: UInt64(store.cpuCheckInterval * 1_000_000_000))
+                }
+            })
         }
 
         if store.fpsMonitoringEnabled {
             fpsMonitor.fpsUpdateHandler = { [weak self] fps in
                 guard let self = self else { return }
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.fpsUsage = fps
+                    self.addToHistory(val: fps, history: &self.fpsHistory)
 
                     if self.store.fpsShowMax {
                         self.fpsMax = max(self.fpsMax, fps)
@@ -69,34 +102,31 @@ final class PerformanceMonitoringViewModel: ObservableObject {
                         self.fpsCount += 1
                         self.fpsAvg = (self.fpsAvg * (self.fpsCount - 1) + fps) / self.fpsCount
                     }
-
                 }
             }
             fpsMonitor.start(with: store.fpsCheckInterval)
         }
+    }
 
-        store.$isActive
-            .sink { newValue in
-                self.isActive = newValue
-            }
-            .store(in: &cancellables)
+    private func addToHistory(val: Double, history: inout [Double]) {
+        history.append(val)
+        if history.count > historyLimit {
+            history.removeFirst()
+        }
     }
 
     func stop() {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
+        monitoringTasks.forEach { $0.cancel() }
+        monitoringTasks.removeAll()
+        nfxSubscription?.cancel()
+        nfxSubscription = nil
         fpsMonitor.stop()
-
-        store.$isActive
-            .sink { newValue in
-                self.isActive = newValue
-            }
-            .store(in: &cancellables)
     }
 
     private func updateMemory() {
         let mem = getMemoryUsage() ?? 0
         memoryUsage = mem
+        addToHistory(val: mem, history: &memoryHistory)
 
         if store.memShowMax {
             memoryMax = max(memoryMax, mem)
@@ -113,9 +143,9 @@ final class PerformanceMonitoringViewModel: ObservableObject {
     }
 
     private func updateCPU() {
-
         let cpu = getCPUUsage() ?? 0
         cpuUsage = cpu
+        addToHistory(val: cpu, history: &cpuHistory)
 
         if store.cpuShowMax {
             cpuMax = max(cpuMax, cpu)
@@ -136,6 +166,7 @@ final class PerformanceMonitoringViewModel: ObservableObject {
         cpuMin = .infinity
         cpuAvg = 0
         cpuCount = 0
+        cpuHistory.removeAll()
     }
 
     func resetMEM() {
@@ -143,6 +174,7 @@ final class PerformanceMonitoringViewModel: ObservableObject {
         memoryMin = .infinity
         memoryAvg = 0
         memoryCount = 0
+        memoryHistory.removeAll()
     }
 
     func resetFPS() {
@@ -150,5 +182,6 @@ final class PerformanceMonitoringViewModel: ObservableObject {
         fpsMin = .infinity
         fpsAvg = 0
         fpsCount = 0
+        fpsHistory.removeAll()
     }
 }
