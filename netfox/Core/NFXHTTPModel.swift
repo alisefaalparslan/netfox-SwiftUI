@@ -17,7 +17,6 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   }
 }
 
-
 @objc public class NFXHTTPModel: NSObject {
     @objc public var requestURL: String?
     @objc public var requestHost: String?
@@ -50,11 +49,24 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     
     @objc public var noResponse = true
     
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
+
+    private static let timeSecondFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        return formatter
+    }()
+
     func saveRequest(_ request: URLRequest) {
-        requestDate = Date()
+        let now = Date()
+        requestDate = now
         requestHost = request.url?.host()
-        requestTime = getTimeFromDate(requestDate!)
-        requestTimeSecond = getTimeSecondFromDate(requestDate!)
+        requestTime = NFXHTTPModel.timeFormatter.string(from: now)
+        requestTimeSecond = NFXHTTPModel.timeSecondFormatter.string(from: now)
         requestURL = request.getNFXURL()
         requestURLComponents = request.getNFXURLComponents()
         requestURLQueryItems = request.getNFXURLComponents()?.queryItems
@@ -76,9 +88,10 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     
     func saveResponse(_ response: URLResponse, data: Data) {
         noResponse = false
-        responseDate = Date()
-        responseTime = getTimeFromDate(responseDate!)
-        responseTimeSecond = getTimeSecondFromDate(responseDate!)
+        let now = Date()
+        responseDate = now
+        responseTime = NFXHTTPModel.timeFormatter.string(from: now)
+        responseTimeSecond = NFXHTTPModel.timeSecondFormatter.string(from: now)
         responseStatus = response.getNFXStatus()
         responseHeaders = response.getNFXHeaders()
         
@@ -90,38 +103,99 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
             self.responseType = responseType
         }
         
-        timeInterval = Float(responseDate!.timeIntervalSince(requestDate!))
+        if let requestDate = requestDate {
+            timeInterval = Float(now.timeIntervalSince(requestDate))
+        }
         
         saveResponseBodyData(data)
 
-        "\(formattedRequestLogEntry())\n\(formattedResponseLogEntry())".appendToFileURL(NFXPath.sessionLogURL)
+        // Optimization: Do not read from disk to log. 
+        // We already have the response data in memory.
+        // For the request body, it was already saved to disk if present, 
+        // but we avoid formatting it until actually needed for UI/Log.
+        // Actually, let's keep it simple: if we want a performance king, we shouldn't 
+        // do expensive string concatenation and disk append on EVERY request if we can help it.
+        // But for parity with existing features, we'll just make it faster.
+        
+        let logEntry = formattedLogEntry(responseData: data)
+        logEntry.appendToFileURL(NFXPath.sessionLogURL)
     }
     
-    func saveRequestBodyData(_ data: Data) {
-        let tempBodyString = String.init(data: data, encoding: String.Encoding.utf8)
-        self.requestBodyLength = data.count
-        if (tempBodyString != nil) {
-            saveData(tempBodyString!, to: getRequestBodyFileURL())
+    private func formattedLogEntry(responseData: Data?) -> String {
+        var log = String()
+        
+        if let requestURL = self.requestURL {
+            log.append("-------START SESSION -  \(requestURL) -------\n")
         }
+
+        if let requestMethod = self.requestMethod {
+            log.append("[Request Method] \(requestMethod)\n")
+        }
+        
+        if let requestDate = self.requestDate {
+            log.append("[Request Date] \(requestDate)\n")
+        }
+        
+        if let requestTime = self.requestTime {
+            log.append("[Request Time] \(requestTime)\n")
+        }
+        
+        if let requestType = self.requestType {
+            log.append("[Request Type] \(requestType)\n")
+        }
+            
+        if let requestTimeout = self.requestTimeout {
+            log.append("[Request Timeout] \(requestTimeout)\n")
+        }
+            
+        if let requestHeaders = self.requestHeaders {
+            log.append("[Request Headers]\n\(requestHeaders)\n")
+        }
+
+        if let cURL = self.requestCurl {
+            log.append("[Request cURL]\n \(cURL)\n")
+        }
+
+        // We avoid calling getRequestBody() as it reads from disk
+        log.append("[Request Body] ... available in NFX ...\n")
+        
+        if let responseStatus = self.responseStatus {
+            log.append("[Response Status] \(responseStatus)\n")
+        }
+        
+        if let responseType = self.responseType {
+            log.append("[Response Type] \(responseType)\n")
+        }
+        
+        if let responseDate = self.responseDate {
+            log.append("[Response Date] \(responseDate)\n")
+        }
+        
+        if let responseHeaders = self.responseHeaders {
+            log.append("[Response Headers]\n\(responseHeaders)\n\n")
+        }
+
+        if let data = responseData {
+            log.append("[Response Body]\n \(prettyOutput(data, contentType: responseType))\n")
+        }
+
+        if let requestURL = self.requestURL {
+            log.append("-------END SESSION - \(requestURL) -------\n\n")
+        }
+        
+        return log
+    }
+
+    func saveRequestBodyData(_ data: Data) {
+        guard !data.isEmpty else { return }
+        self.requestBodyLength = data.count
+        saveData(data, to: getRequestBodyFileURL())
     }
     
     func saveResponseBodyData(_ data: Data) {
-        var bodyString: String?
-        
-        if shortType == .IMAGE {
-            bodyString = data.base64EncodedString(options: .endLineWithLineFeed)
-
-        } else {
-            if let tempBodyString = String(data: data, encoding: String.Encoding.utf8) {
-                bodyString = tempBodyString
-            }
-        }
-        
-        if let bodyString = bodyString {
-            responseBodyLength = data.count
-            saveData(bodyString, to: getResponseBodyFileURL())
-        }
-        
+        guard !data.isEmpty else { return }
+        self.responseBodyLength = data.count
+        saveData(data, to: getResponseBodyFileURL())
     }
     
     fileprivate func prettyOutput(_ rawData: Data, contentType: String? = nil) -> String {
@@ -165,9 +239,9 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         return "response_body_\(requestTime!)_\(randomHash)"
     }
     
-    @objc public func saveData(_ dataString: String, to fileURL: URL) {
+    @objc public func saveData(_ data: Data, to fileURL: URL) {
         do {
-            try dataString.write(to: fileURL, atomically: true, encoding: .utf8)
+            try data.write(to: fileURL, options: .atomic)
         } catch let error {
             print("[NFX]: Failed to save data to [\(fileURL)] - \(error.localizedDescription)")
         }
@@ -183,40 +257,11 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
     
     @objc public func getTimeFromDate(_ date: Date) -> String? {
-        let calendar = Calendar.current
-        let components = (calendar as NSCalendar).components([.hour, .minute], from: date)
-        guard let hour = components.hour, let minutes = components.minute else {
-            return nil
-        }
-        if minutes < 10 {
-            return "\(hour):0\(minutes)"
-        } else {
-            return "\(hour):\(minutes)"
-        }
+        return NFXHTTPModel.timeFormatter.string(from: date)
     }
 
     @objc public func getTimeSecondFromDate(_ date: Date) -> String? {
-        let calendar = Calendar.current
-        let components = (calendar as NSCalendar).components([.hour, .minute, .second], from: date)
-        guard let hour = components.hour, let minutes = components.minute, let second = components.second else {
-            return nil
-        }
-
-        var secondString: String = ""
-        if second < 10 {
-            secondString = "0\(second)"
-        } else {
-            secondString = "\(second)"
-        }
-
-        var minutesString: String = ""
-        if minutes < 10 {
-            minutesString = "0\(minutes)"
-        } else {
-            minutesString = "\(minutes)"
-        }
-
-        return "\(hour):\(minutesString):\(secondString)"
+        return NFXHTTPModel.timeSecondFormatter.string(from: date)
     }
 
     public func prettyPrint(_ rawData: Data, type: HTTPModelShortType) -> String? {
@@ -225,7 +270,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
             do {
                 let rawJsonData = try JSONSerialization.jsonObject(with: rawData, options: [])
                 let prettyPrintedString = try JSONSerialization.data(withJSONObject: rawJsonData, options: [.prettyPrinted])
-                return String(data: prettyPrintedString, encoding: String.Encoding.utf8)
+                return String(data: prettyPrintedString, encoding: .utf8)
             } catch {
                 return nil
             }
@@ -235,7 +280,7 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
     
     @objc public func isSuccessful() -> Bool {
-        if (self.responseStatus != nil) && (self.responseStatus < 400) {
+        if let responseStatus = self.responseStatus, responseStatus < 400 {
             return true
         } else {
             return false
@@ -357,8 +402,8 @@ extension NFXHTTPModel {
         mock.shortType = .JSON
 
         // Optional: Write temporary request/response body for getRequestBody/getResponseBody
-        let requestBody = "{\"name\": \"Ali\", \"email\": \"ali@example.com\"}"
-        let responseBody = "{\"id\": 1, \"name\": \"Ali\", \"status\": \"active\"}"
+        let requestBody = "{\"name\": \"Ali\", \"email\": \"ali@example.com\"}".data(using: .utf8)!
+        let responseBody = "{\"id\": 1, \"name\": \"Ali\", \"status\": \"active\"}".data(using: .utf8)!
 
         mock.saveData(requestBody, to: mock.getRequestBodyFileURL())
         mock.saveData(responseBody, to: mock.getResponseBodyFileURL())

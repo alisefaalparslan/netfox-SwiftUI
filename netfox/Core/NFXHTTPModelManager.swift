@@ -17,14 +17,15 @@ final class NFXHTTPModelManager: NSObject {
     /// Not thread safe. Use only from main thread/queue
     private(set) var models = [NFXHTTPModel]() {
         didSet {
-            notifySubscribers()
+            scheduleNotification()
         }
     }
     
     /// Not thread safe. Use only from main thread/queue
     var filters = [Bool](repeating: true, count: HTTPModelShortType.allCases.count) {
         didSet {
-            notifySubscribers()
+            _cachedFilteredModels = nil
+            scheduleNotification()
         }
     }
 
@@ -36,22 +37,46 @@ final class NFXHTTPModelManager: NSObject {
 
     var sharedMonitorConfig = NetfoxSettingsStore()
 
+    private var _cachedFilteredModels: [NFXHTTPModel]?
+    
     /// Not thread safe. Use only from main thread/queue
     var filteredModels: [NFXHTTPModel] {
-        let filteredTypes = getCachedFilterTypes()
-        return models.filter { filteredTypes.contains($0.shortType) }
+        if let cached = _cachedFilteredModels {
+            return cached
+        }
+        let filteredTypes = Set(getCachedFilterTypes())
+        let result = models.filter { filteredTypes.contains($0.shortType) }
+        _cachedFilteredModels = result
+        return result
+    }
+    
+    private var notificationPending = false
+    
+    private func scheduleNotification() {
+        guard !notificationPending else { return }
+        notificationPending = true
+        
+        // Throttle notifications to main thread to avoid UI overload
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+            self.notificationPending = false
+            self._cachedFilteredModels = nil // Reset cache
+            self.notifySubscribers()
+        }
     }
     
     /// Thread safe
     func add(_ obj: NFXHTTPModel) {
         DispatchQueue.main.async {
-            self.models.insert(obj, at: 0)
+            self.models.append(obj)
+            self._cachedFilteredModels = nil
         }
     }
     
     /// Not thread safe. Use only from main thread/queue
     func clear() {
         models.removeAll()
+        _cachedFilteredModels = nil
     }
     
     private func getCachedFilterTypes() -> [HTTPModelShortType] {

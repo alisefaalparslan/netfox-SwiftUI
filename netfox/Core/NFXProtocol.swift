@@ -40,25 +40,23 @@ open class NFXProtocol: URLProtocol {
         }
         
         guard URLProtocol.property(forKey: NFXProtocol.nfxInternalKey, in: request) == nil,
-            let url = request.url,
-            (url.absoluteString.hasPrefix("http") || url.absoluteString.hasPrefix("https")) else {
+            let url = request.url else {
             return false
         }
         
         let absoluteString = url.absoluteString
+        guard (absoluteString.hasPrefix("http") || absoluteString.hasPrefix("https")) else {
+            return false
+        }
+        
         guard !NFX.sharedInstance().getIgnoredURLs().contains(where: { absoluteString.hasPrefix($0) }) else {
             return false
         }
         
-        let regexMatches = NFX.sharedInstance().getIgnoredURLsRegexes()
-            .map({return $0.matches(url.absoluteString)})
-            .reduce(false) {$0 || $1}
+        let isIgnoredRegex = NFX.sharedInstance().getIgnoredURLsRegexes()
+            .contains { $0.matches(absoluteString) }
         
-        guard regexMatches == false else {
-            return false
-        }
-        
-        return true
+        return !isIgnoredRegex
     }
     
     override open func startLoading() {
@@ -125,8 +123,7 @@ extension NFXProtocol: URLSessionDataDelegate {
         }
         
         model.saveRequestBody(request)
-//        model.logRequest(request)
-        
+
         if error != nil {
             model.saveErrorResponse()
         } else if let response = response {

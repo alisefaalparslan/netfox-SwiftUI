@@ -21,13 +21,14 @@ public enum HTTPModelShortType: String, CaseIterable {
 public extension HTTPModelShortType {
     
     init(contentType: String) {
-        if NSPredicate(format: "SELF MATCHES %@", "^application/(vnd\\.(.*)\\+)?json$").evaluate(with: contentType) {
+        let lowercased = contentType.lowercased()
+        if lowercased.contains("json") {
             self = .JSON
-        } else if (contentType == "application/xml") || (contentType == "text/xml")  {
+        } else if lowercased.contains("xml") {
             self = .XML
-        } else if contentType == "text/html" {
+        } else if lowercased.contains("html") {
             self = .HTML
-        } else if contentType.hasPrefix("image/") {
+        } else if lowercased.hasPrefix("image/") {
             self = .IMAGE
         } else {
             self = .OTHER
@@ -547,10 +548,9 @@ extension UIWindow {
     static var keyWindow: UIWindow? {
         if #available(iOS 13.0, *) {
             return UIApplication.shared.connectedScenes
-                .sorted { $0.activationState.sortPriority < $1.activationState.sortPriority }
+                .filter { $0.activationState == .foregroundActive }
                 .compactMap { $0 as? UIWindowScene }
-                .compactMap { $0.windows.first { $0.isKeyWindow } }
-                .first
+                .first?.windows.first { $0.isKeyWindow }
         } else {
             return UIApplication.shared.keyWindow
         }

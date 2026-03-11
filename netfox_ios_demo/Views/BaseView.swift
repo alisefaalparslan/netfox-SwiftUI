@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import netfox_ios
 
 struct BaseView: View {
     var body: some View {
@@ -27,4 +28,11 @@ struct BaseView: View {
                 }
         }
     }
+}
+
+#Preview {
+    BaseView()
+        .overlay {
+            PerformanceMonitoringView()
+        }
 }

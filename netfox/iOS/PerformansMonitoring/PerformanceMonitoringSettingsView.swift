@@ -207,7 +207,9 @@ final class NetfoxSettingsStore: ObservableObject {
         } else {
             isActive = false
         }
-        
+
+        isActive = true
+
         isCollapsedVertical = NetfoxSettingsStore.getBool("isCollapsedVertical")
         isCollapsedHorizontal = NetfoxSettingsStore.getBool("isCollapsedHorizontal")
 

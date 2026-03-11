@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ListView: View {
     @State private var allModels: [NFXHTTPModel] = []
+    @State private var filteredModels: [NFXHTTPModel] = []
     @State private var filter: String = ""
     @State private var selectedModel: NFXHTTPModel?
     @State private var showClearConfirmation = false
@@ -17,17 +18,18 @@ struct ListView: View {
     @State private var showSourceBar = false
     @Environment(\.presentationMode) private var presentationMode
 
-    private let dataSubscription = NFXHTTPModelManager.shared.publisher
-
     @State var selectedStatus: FiltersStatusType = .all
     @State var selectedSortByDurationTime: FiltersSortByTimeType = .clear
     @State var selectedSortByStartTime: FiltersSortByTimeType = .clear
     @State var selectedSortByFinishTime: FiltersSortByTimeType = .clear
     @State var ignoredDomains: [String] = []
+    
+    @State private var allDomains: [String] = []
+    @State private var maxTimeInterval: Float = 0.0
 
     var body: some View {
         NavigationStack {
-            List(filteredData, id: \.randomHash) { model in
+            List(filteredModels, id: \.randomHash) { model in
                 NavigationLink(destination: DetailsView(selectedModel: model)) {
                     ListItemView(model: model)
                     .padding(.vertical, 5)
@@ -36,8 +38,6 @@ struct ListView: View {
             .listStyle(.grouped)
             .navigationTitle("")
             .toolbar {
-
-
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     Button(action: { showClearConfirmation = true }) {
                         Image(systemName: "trash")
@@ -46,7 +46,6 @@ struct ListView: View {
                     Button(action: { showSettings = true }) {
                         Image(systemName: "gear")
                     }
-
 
                     Button(action: { showToolBar = true }) {
                         Image(systemName: "line.3.horizontal.decrease")
@@ -57,31 +56,22 @@ struct ListView: View {
                     }
                 }
 
-                if #available(iOS 26.0, *) {
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        
-                        Text("T: \(filteredData.count)")
-                            .font(.system(size: 12))
-                        
-                        Text("S: \(String(format: "%.2f", filteredData.max(by: { $0.timeInterval ?? 0 < $1.timeInterval ?? 0 })?.timeInterval ?? 0.0))")
-                            .font(.system(size: 12))
-                    }
-                    .sharedBackgroundVisibility(.hidden)
-                } else {
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-
-                        Text("T: \(filteredData.count)")
-                            .font(.system(size: 12))
-
-                        Text("S: \(String(format: "%.2f", filteredData.max(by: { $0.timeInterval ?? 0 < $1.timeInterval ?? 0 })?.timeInterval ?? 0.0))")
-                            .font(.system(size: 12))
-                    }
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Text("T: \(filteredModels.count)")
+                        .font(.system(size: 12))
+                    
+                    Text("S: \(String(format: "%.2f", maxTimeInterval))")
+                        .font(.system(size: 12))
                 }
-
-
             }
             .searchable(text: $filter, placement: .navigationBarDrawer(displayMode: .always))
-
+            .onChange(of: allModels) { _ in updateFilteredData() }
+            .onChange(of: filter) { _ in updateFilteredData() }
+            .onChange(of: selectedStatus) { _ in updateFilteredData() }
+            .onChange(of: selectedSortByDurationTime) { _ in updateFilteredData() }
+            .onChange(of: selectedSortByStartTime) { _ in updateFilteredData() }
+            .onChange(of: selectedSortByFinishTime) { _ in updateFilteredData() }
+            .onChange(of: ignoredDomains) { _ in updateFilteredData() }
             .confirmationDialog("Clear data?", isPresented: $showClearConfirmation) {
                 Button("Yes", role: .destructive) {
                     NFX.sharedInstance().clearOldData()
@@ -95,7 +85,7 @@ struct ListView: View {
                     selectedSortByFinishTime: $selectedSortByFinishTime,
                     selectedSortByStartTime: $selectedSortByStartTime,
                     ignoredDomains: ignoredDomains,
-                    allDomains: Array(Set(allModels.compactMap { $0.requestHost })).sorted()
+                    allDomains: allDomains
                 ) { ignoredDomains in
                     if ignoredDomains != self.ignoredDomains {
                         self.ignoredDomains = ignoredDomains
@@ -109,12 +99,13 @@ struct ListView: View {
                 NFXHTTPModelManager.shared.publisher.subscribe { models in
                     allModels = models
                 }
-                populate(with: NFXHTTPModelManager.shared.filteredModels)
+                allModels = NFXHTTPModelManager.shared.filteredModels
                 self.ignoredDomains = NFXHTTPModelManager.shared.ignoredDomains
                 self.selectedStatus = NFXHTTPModelManager.shared.selectedStatus
                 self.selectedSortByDurationTime = NFXHTTPModelManager.shared.selectedSortByDurationTime
                 self.selectedSortByStartTime = NFXHTTPModelManager.shared.selectedSortByStartTime
                 self.selectedSortByFinishTime = NFXHTTPModelManager.shared.selectedSortByFinishTime
+                updateFilteredData()
             }
             .onDisappear {
                 NFXHTTPModelManager.shared.ignoredDomains = self.ignoredDomains
@@ -126,73 +117,59 @@ struct ListView: View {
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView()
             }
-
         }
     }
 
-    private var filteredData: [NFXHTTPModel] {
-         var currentModels = allModels
+    private func updateFilteredData() {
+        var currentModels = allModels
 
-         // 1. Apply search filter
-         if !filter.isEmpty {
-             currentModels = currentModels.filter {
-                 ($0.requestURL?.range(of: filter, options: [.caseInsensitive, .diacriticInsensitive]) != nil) ||
-                 ($0.requestMethod?.range(of: filter, options: [.caseInsensitive, .diacriticInsensitive]) != nil) ||
-                 ($0.responseType?.range(of: filter, options: [.caseInsensitive, .diacriticInsensitive]) != nil)
-             }
-         }
+        // 1. Domains for filter view (cached here to avoid recomputing in body)
+        let domains = Set(currentModels.compactMap { $0.requestHost })
+        self.allDomains = Array(domains).sorted()
 
+        // 2. Apply search filter
+        if !filter.isEmpty {
+            let query = filter.lowercased()
+            currentModels = currentModels.filter {
+                ($0.requestURL?.lowercased().contains(query) == true) ||
+                ($0.requestMethod?.lowercased().contains(query) == true) ||
+                ($0.responseType?.lowercased().contains(query) == true)
+            }
+        }
+
+        // 3. Ignore domains
         if !ignoredDomains.isEmpty {
             currentModels = currentModels.filter {
                 !ignoredDomains.contains($0.requestHost ?? "")
             }
         }
 
-         // 2. Apply status filter
-         switch selectedStatus {
-         case .success:
-             currentModels = currentModels.filter { ($0.responseStatus ?? 999) >= 200 && ($0.responseStatus ?? 999) < 300 } // Success codes typically 2xx
-         case .cache:
-             currentModels = currentModels.filter { ($0.responseStatus ?? 999) >= 300 && ($0.responseStatus ?? 999) < 400 } // Redirection codes typically 3xx (often cached)
-         case .error:
-             currentModels = currentModels.filter { ($0.responseStatus ?? 999) >= 400 } // Error codes 4xx or 5xx
-         case .all:
-             break
-         }
-
-         // 3. Apply sorting
-         switch selectedSortByDurationTime {
-         case .asc:
-             currentModels.sort { ($0.timeInterval ?? 0) < ($1.timeInterval ?? 0) }
-         case .desc:
-             currentModels.sort { ($0.timeInterval ?? 0) > ($1.timeInterval ?? 0) }
-         case .clear:
-             break
-         }
-
-        switch selectedSortByStartTime {
-        case .asc:
-            currentModels.sort { ($0.requestDate ?? Date()) < ($1.requestDate ?? Date()) }
-        case .desc:
-            currentModels.sort { ($0.requestDate ?? Date()) > ($1.requestDate ?? Date()) }
-        case .clear:
+        // 4. Apply status filter
+        switch selectedStatus {
+        case .success:
+            currentModels = currentModels.filter { (200...299).contains($0.responseStatus ?? 999) }
+        case .cache:
+            currentModels = currentModels.filter { (300...399).contains($0.responseStatus ?? 999) }
+        case .error:
+            currentModels = currentModels.filter { ($0.responseStatus ?? 999) >= 400 }
+        case .all:
             break
         }
 
-        switch selectedSortByFinishTime {
-        case .asc:
-            currentModels.sort { ($0.responseDate ?? Date()) < ($1.responseDate ?? Date()) }
-        case .desc:
-            currentModels.sort { ($0.responseDate ?? Date()) > ($1.responseDate ?? Date()) }
-        case .clear:
-            break
+        // 5. Apply sorting
+        if selectedSortByDurationTime != .clear {
+            currentModels.sort { selectedSortByDurationTime == .asc ? ($0.timeInterval ?? 0) < ($1.timeInterval ?? 0) : ($0.timeInterval ?? 0) > ($1.timeInterval ?? 0) }
+        } else if selectedSortByStartTime != .clear {
+            currentModels.sort { selectedSortByStartTime == .asc ? ($0.requestDate ?? Date.distantPast) < ($1.requestDate ?? Date.distantPast) : ($0.requestDate ?? Date.distantPast) > ($1.requestDate ?? Date.distantPast) }
+        } else if selectedSortByFinishTime != .clear {
+            currentModels.sort { selectedSortByFinishTime == .asc ? ($0.responseDate ?? Date.distantPast) < ($1.responseDate ?? Date.distantPast) : ($0.responseDate ?? Date.distantPast) > ($1.responseDate ?? Date.distantPast) }
+        } else {
+            // Default: Newest first (Manager appends, so we reverse)
+            currentModels.reverse()
         }
 
-         return currentModels
-     }
-
-    private func populate(with models: [NFXHTTPModel]) {
-        allModels = models
+        self.filteredModels = currentModels
+        self.maxTimeInterval = currentModels.map { $0.timeInterval ?? 0.0 }.max() ?? 0.0
     }
 }
 

@@ -58,9 +58,6 @@ public struct PerformanceMonitoringView: View {
                     }
             }
         }
-        .onDisappear {
-            print("asdasdasd")
-        }        
     }
 
     private var content: some View {
